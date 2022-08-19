@@ -47,6 +47,7 @@ extern int h_outbound_msgbuf;
 extern int h_rehash;
 extern int h_priv_change;
 extern int h_cap_change;
+extern int h_client_tag_accept;
 
 void init_hook(void);
 int register_hook(const char *name);
@@ -156,10 +157,19 @@ typedef struct
 	int del;
 } hook_data_cap_change;
 
+typedef struct
+{
+	struct Client *client;
+	struct MsgBuf *outgoing_msgbuf;
+	const struct MsgTag *incoming_tag;
+	bool drop;
+} hook_data_client_tag_accept;
+
 enum message_type {
 	MESSAGE_TYPE_NOTICE,
 	MESSAGE_TYPE_PRIVMSG,
 	MESSAGE_TYPE_PART,
+	MESSAGE_TYPE_TAGMSG,
 	MESSAGE_TYPE_COUNT
 };
 

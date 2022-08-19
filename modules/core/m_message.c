@@ -41,14 +41,16 @@
 #include "s_newconf.h"
 #include "s_stats.h"
 #include "tgchange.h"
+#include "client_tags.h"
 #include "inline/stringops.h"
 
 static const char message_desc[] =
-	"Provides the PRIVMSG and NOTICE commands to send messages to users and channels";
+	"Provides the PRIVMSG, NOTICE, TAGMSG commands to send messages to users and channels";
 
 static void m_message(enum message_type, struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_privmsg(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_notice(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
+static void m_tagmsg(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 static void m_echo(struct MsgBuf *, struct Client *, struct Client *, int, const char **);
 
 static void echo_msg(struct Client *, struct Client *, enum message_type, const char *);
@@ -57,6 +59,14 @@ static void expire_tgchange(void *unused);
 static struct ev_entry *expire_tgchange_event;
 
 static unsigned int CAP_ECHO;
+static unsigned int CAP_TAGS;
+
+struct entity
+{
+	void* ptr;
+	int type;
+	int flags;
+};
 
 static int
 modinit(void)
@@ -80,26 +90,24 @@ struct Message notice_msgtab = {
 	"NOTICE", 0, 0, 0, 0,
 	{mg_unreg, {m_notice, 0}, {m_notice, 0}, {m_notice, 0}, mg_ignore, {m_notice, 0}}
 };
+struct Message tagmsg_msgtab = {
+	"TAGMSG", 0, 0, 0, 0,
+	{mg_unreg, {m_tagmsg, 0}, {m_tagmsg, 0}, mg_ignore, mg_ignore, {m_tagmsg, 0}}
+};
 struct Message echo_msgtab = {
 	"ECHO", 0, 0, 0, 0,
 	{mg_unreg, mg_ignore, {m_echo, 3}, mg_ignore, mg_ignore, mg_ignore}
 };
 
-mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab, NULL };
+mapi_clist_av1 message_clist[] = { &privmsg_msgtab, &notice_msgtab, &echo_msgtab, &tagmsg_msgtab, NULL };
 
 mapi_cap_list_av2 message_cap_list[] = {
 	{ MAPI_CAP_SERVER, "ECHO", NULL, &CAP_ECHO },
+	{ MAPI_CAP_SERVER, "TAGS", NULL, &CAP_TAGS },
 	{ 0, NULL, NULL, NULL }
 };
 
 DECLARE_MODULE_AV2(message, modinit, moddeinit, message_clist, NULL, NULL, message_cap_list, NULL, message_desc);
-
-struct entity
-{
-	void *ptr;
-	int type;
-	int flags;
-};
 
 static int build_target_list(enum message_type msgtype,
 			     struct Client *client_p,
@@ -163,6 +171,7 @@ static void handle_special(enum message_type msgtype,
 const char *cmdname[MESSAGE_TYPE_COUNT] = {
 	[MESSAGE_TYPE_PRIVMSG] = "PRIVMSG",
 	[MESSAGE_TYPE_NOTICE] = "NOTICE",
+	[MESSAGE_TYPE_TAGMSG] = "TAGMSG"
 };
 
 static void
@@ -176,6 +185,14 @@ m_notice(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source
 {
 	m_message(MESSAGE_TYPE_NOTICE, msgbuf_p, client_p, source_p, parc, parv);
 }
+
+
+static void
+m_tagmsg(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p, int parc, const char *parv[]) {
+	// TODO: test if target supports tags, if not, ignore.
+	m_message(MESSAGE_TYPE_TAGMSG, msgbuf_p, client_p, source_p, parc, parv);
+}
+
 
 /*
  * inputs	- flag privmsg or notice
@@ -257,6 +274,7 @@ m_echo(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *source_p
 	{
 	case 'P': msgtype = MESSAGE_TYPE_PRIVMSG; break;
 	case 'N': msgtype = MESSAGE_TYPE_NOTICE; break;
+	case 'T': msgtype = MESSAGE_TYPE_TAGMSG; break;
 	default: return;
 	}
 

@@ -133,6 +133,14 @@ msgbuf_parse(struct MsgBuf *msgbuf, char *line)
 			return 1;
 		}
 	}
+	
+	return msgbuf_partial_parse(msgbuf, ch);
+}
+
+int
+msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line)
+{
+	char *ch = strdup(line);
 
 	/* truncate message if it's too long */
 	if (strlen(ch) > DATALEN) {
@@ -402,6 +410,19 @@ msgbuf_unparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, unsigned
 	va_end(va);
 
 	return res;
+}
+
+const char *
+msgbuf_get_tag(const struct MsgBuf *buf, const char *name)
+{
+	for (size_t i = 0; i < buf->n_tags; i++)
+	{
+		if (strcmp(name, buf->tags[i].key))
+			continue;
+		const char *v = buf->tags[i].value;
+		return v != NULL ? v : "";
+	}
+	return NULL;
 }
 
 void

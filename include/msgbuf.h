@@ -78,6 +78,12 @@ struct MsgBuf_cache {
 int msgbuf_parse(struct MsgBuf *msgbuf, char *line);
 
 /*
+ * Parse partially a msgbuf without tags
+ * assuming msgbuf is already initialized.
+ */
+int msgbuf_partial_parse(struct MsgBuf *msgbuf, const char *line);
+
+/*
  * Unparse the tail of a msgbuf perfectly, preserving framing details
  * msgbuf->para[n] will reach to the end of the line
  */
@@ -102,6 +108,8 @@ int msgbuf_vunparse_fmt(char *buf, size_t buflen, const struct MsgBuf *head, uns
 
 int msgbuf_unparse_linebuf_tags(char *buf, size_t buflen, void *data);
 int msgbuf_unparse_prefix(char *buf, size_t *buflen, const struct MsgBuf *msgbuf, unsigned int capmask);
+
+const char *msgbuf_get_tag(const struct MsgBuf *buf, const char *name);
 
 void msgbuf_cache_init(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message);
 void msgbuf_cache_initf(struct MsgBuf_cache *cache, const struct MsgBuf *msgbuf, const rb_strf_t *message, const char *format, ...) AFP(4, 5);
