@@ -797,6 +797,7 @@ chm_ban(struct Client *source_p, struct Channel *chptr,
 			return;
 		}
 
+		if(!(chptr->mode.mode & MODE_HIDEBANS) || alevel & ONLY_CHANOPS)
 		RB_DLINK_FOREACH(ptr, list->head)
 		{
 			char buf[BANLEN];
@@ -1296,6 +1297,7 @@ struct ChannelMode chmode_table[256] =
   ['t'] = {chm_simple,    MODE_TOPICLIMIT, 0 },
   ['v'] = {chm_voice,     0,               CHM_ARGS },
   ['z'] = {chm_simple,    MODE_OPMODERATE, 0 },
+  ['U'] = {chm_simple,    MODE_HIDEBANS, 0 },
 };
 
 /* *INDENT-ON* */
