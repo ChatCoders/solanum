@@ -181,7 +181,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 		rb_free(b_response);
 
-		oper_p = find_oper_conf(source_p->username, source_p->orighost,
+		oper_p = find_oper_conf(source_p->username, source_p->orighost, source_p->host,
 					source_p->sockhost,
 					source_p->user->opername);
 
