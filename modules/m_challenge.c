@@ -214,7 +214,7 @@ m_challenge(struct MsgBuf *msgbuf_p, struct Client *client_p, struct Client *sou
 
 	cleanup_challenge(source_p);
 
-	oper_p = find_oper_conf(source_p->username, source_p->orighost, source_p->orighost, source_p->host,
+	oper_p = find_oper_conf(source_p->username, source_p->orighost, source_p->host,
 				source_p->sockhost, parv[1]);
 
 	if(oper_p == NULL)
