@@ -47,7 +47,6 @@ $spitshell >version.c <<!SUB!THIS!
 
 const char *librb_generation = "$generation";
 const char *librb_serno = SERNO;
-const unsigned long int librb_datecode = DATECODE;
 
 const char *librb_infotext[] =
 {
